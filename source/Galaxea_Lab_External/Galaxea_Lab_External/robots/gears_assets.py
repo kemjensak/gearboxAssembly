@@ -11,6 +11,7 @@ from isaaclab.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg
 ##
 # Configuration
 ##
+x_offset = 0.2
 
 TABLE_CFG: AssetBaseCfg = AssetBaseCfg(
     prim_path="/World/envs/env_.*/Table",
@@ -20,7 +21,8 @@ TABLE_CFG: AssetBaseCfg = AssetBaseCfg(
         collision_props=sim_utils.CollisionPropertiesCfg(contact_offset=0.01, rest_offset=0.001),
     ),
     init_state=AssetBaseCfg.InitialStateCfg(
-        pos=(0.55, 0.0, 0.0),
+        # pos=(0.55, 0.0, 0.0),
+        pos=(0.55 + x_offset, 0.0, 0.0),
         rot=(-0.70711, 0.0, 0.0, 0.70711),
     ),
 )

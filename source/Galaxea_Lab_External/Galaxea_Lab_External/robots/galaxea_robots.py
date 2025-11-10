@@ -9,6 +9,7 @@ from isaaclab.sensors import CameraCfg
 from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg
 from Galaxea_Lab_External import GALAXEA_LAB_ASSETS_DIR
+import math
 
 
 ##
@@ -18,7 +19,7 @@ from Galaxea_Lab_External import GALAXEA_LAB_ASSETS_DIR
 GALAXEA_R1_CHALLENGE_CFG = ArticulationCfg(
     prim_path="{ENV_REGEX_NS}/Robot",
         spawn=sim_utils.UsdFileCfg(
-            usd_path=f"{GALAXEA_LAB_ASSETS_DIR}/Robots/Galaxea/r1_DVT_colored_cam.usd",
+            usd_path=f"{GALAXEA_LAB_ASSETS_DIR}/Robots/Galaxea/r1_DVT_colored_cam_pos.usd",
             activate_contact_sensors=True,
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 disable_gravity=False,
@@ -42,22 +43,25 @@ GALAXEA_R1_CHALLENGE_CFG = ArticulationCfg(
         ),
         init_state=ArticulationCfg.InitialStateCfg(
             joint_pos={
-            "left_arm_joint1": 0.0,
-            "left_arm_joint2": 2.0,
-            "left_arm_joint3": -1.57,
-            "left_arm_joint4": 0.0,
-            "left_arm_joint5": 1.57,
-            "left_arm_joint6": 0.0,
+            "left_arm_joint1": 0.076,
+            "left_arm_joint2": 0.058,
+            "left_arm_joint3": -0.020,
+            "left_arm_joint4": 0.502,
+            "left_arm_joint5": -0.279,
+            "left_arm_joint6": -0.218,
             "left_gripper_axis1": 0.03,
             "left_gripper_axis2": 0.03,
-            "right_arm_joint1": 0.0,
-            "right_arm_joint2": 2.0,
-            "right_arm_joint3": -1.57,
-            "right_arm_joint4": 0.0,
-            "right_arm_joint5": -1.57,
-            "right_arm_joint6": 0.0,
+            "right_arm_joint1": -0.800,
+            "right_arm_joint2": -0.502,
+            "right_arm_joint3": 0.0,
+            "right_arm_joint4": 0.718,
+            "right_arm_joint5": -0.761,
+            "right_arm_joint6": 2.326,
             "right_gripper_axis1": 0.03,
             "right_gripper_axis2": 0.03,
+            "torso_joint1": 28.6479 / 180.0 * math.pi,
+            "torso_joint2": -45.8366 / 180.0 * math.pi,
+            "torso_joint3": 28.6479 / 180.0 * math.pi,
             },
             pos=(0.0, 0.0, 0.0),
             rot=(1.0, 0.0, 0.0, 0.0),
@@ -90,6 +94,15 @@ GALAXEA_R1_CHALLENGE_CFG = ArticulationCfg(
                 friction=0.0,
                 armature=0.01,
             ),
+            "r1_torso": ImplicitActuatorCfg(
+                joint_names_expr=["torso_joint[1-5]"],
+                stiffness=1050.0,
+                damping=100.0,
+                friction=0.0,
+                armature=0.1,
+                effort_limit_sim=87,
+                velocity_limit_sim=124.6,
+            ),
         },
 )
 
@@ -109,20 +122,20 @@ GALAXEA_R1_CFG = ArticulationCfg(
     ),
     init_state=ArticulationCfg.InitialStateCfg(
         joint_pos={
-            "left_arm_joint1": 0.0,
-            "left_arm_joint2": 2.0,
-            "left_arm_joint3": -1.57,
-            "left_arm_joint4": 0.0,
-            "left_arm_joint5": 1.57,
-            "left_arm_joint6": 0.0,
+            "left_arm_joint1": 0.076,
+            "left_arm_joint2": 0.058,
+            "left_arm_joint3": -0.020,
+            "left_arm_joint4": 0.502,
+            "left_arm_joint5": -0.279,
+            "left_arm_joint6": -0.218,
             "left_gripper_axis1": 0.03,
             "left_gripper_axis2": 0.03,
-            "right_arm_joint1": 0.0,
-            "right_arm_joint2": 2.0,
-            "right_arm_joint3": -1.57,
-            "right_arm_joint4": 0.0,
-            "right_arm_joint5": -1.57,
-            "right_arm_joint6": 0.0,
+            "right_arm_joint1": -0.800,
+            "right_arm_joint2": -0.502,
+            "right_arm_joint3": 0.0,
+            "right_arm_joint4": 0.718,
+            "right_arm_joint5": -0.761,
+            "right_arm_joint6": 2.326,
             "right_gripper_axis1": 0.03,
             "right_gripper_axis2": 0.03,
         },
@@ -185,3 +198,40 @@ GALAXEA_CAMERA_CFG = CameraCfg(
     ),
 )
 
+GALAXEA_HEAD_CAMERA_CFG = CameraCfg(
+    prim_path="/World/envs/env_.*/Robot/zed_link/head_cam/head_cam",  # should be replaced with the actual parent frame
+    update_period=1 / 30.0,  # 30 Hz
+    height=1080,
+    width=1920,
+    data_types=["rgb", "distance_to_image_plane"],
+    spawn=sim_utils.PinholeCameraCfg(
+        focal_length=2.12,
+        focus_distance=100.0,
+        horizontal_aperture=6.055,
+        clipping_range=(0.01, 100),
+    ),
+    offset=CameraCfg.OffsetCfg(  # offset from the parent frame
+        pos=(0.0, 0.0, 0.0),
+        rot=(1.0, 0.0, 0.0, 0.0),
+        convention="opengl",
+    ),
+)
+
+GALAXEA_HAND_CAMERA_CFG = CameraCfg(
+    prim_path="/World/envs/env_.*/Robot/left_realsense_link/left_hand_cam/left_hand_cam",  # should be replaced with the actual parent frame
+    update_period=1 / 30.0,  # 30 Hz
+    height=1080,
+    width=1920,
+    data_types=["rgb", "distance_to_image_plane"],
+    spawn=sim_utils.PinholeCameraCfg(
+        focal_length=2.12,
+        focus_distance=100.0,
+        horizontal_aperture=6.055,
+        clipping_range=(0.01, 100),
+    ),
+    offset=CameraCfg.OffsetCfg(  # offset from the parent frame
+        pos=(0.0, 0.0, 0.0),
+        rot=(1.0, 0.0, 0.0, 0.0),
+        convention="opengl",
+    ),
+)

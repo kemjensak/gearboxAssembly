@@ -77,6 +77,9 @@ class GalaxeaRulePolicy:
         self.num_gripper_joints = None
 
         self.gear_to_pin_map = None
+        
+        self.current_target_position = None
+        self.current_target_orientation = None
 
 
         self.sim_dt = sim.get_physics_dt()
@@ -543,20 +546,23 @@ class GalaxeaRulePolicy:
             local_pos = torch.tensor([0.0, 0.054, 0.0], device=self.sim.device).unsqueeze(0)
             # local_pos = torch.tensor([0.054, 0.0, 0.0], device=sim.device).unsqueeze(0)
 
-            target_orientation, target_position = torch_utils.tf_combine(
-                ring_gear_quat, ring_gear_pos, 
-                torch.tensor([[1.0, 0.0, 0.0, 0.0]], device=self.sim.device), local_pos
-            )
+            if self.count == count_step[0]:
+                self.current_target_orientation, self.current_target_position = torch_utils.tf_combine(
+                    ring_gear_quat, ring_gear_pos, 
+                    torch.tensor([[1.0, 0.0, 0.0, 0.0]], device=self.sim.device), local_pos
+                )
             # root_state = target_position
             # target_orientation = torch.tensor([[1.0, 0.0, 0.0, 0.0]], device=sim.device)
         elif gear_id == 4:
             root_state = self.planetary_carrier.data.root_state_w.clone()
-            target_position = root_state[:, :3].clone()
+            if self.count == count_step[0]:
+                self.current_target_position = root_state[:, :3].clone()
             # planetary_carrier_quat = root_state[:, 3:7].clone()
 
         elif gear_id == 6: # Reducer
             root_state = self.sun_planetary_gear_4.data.root_state_w.clone()
-            target_position = root_state[:, :3].clone()
+            if self.count == count_step[0]:
+                self.current_target_position = root_state[:, :3].clone()
             obj_height_offset = 0.02
 
 
@@ -580,10 +586,15 @@ class GalaxeaRulePolicy:
                 original_planetary_carrier_quat, original_planetary_carrier_pos, 
                 torch.tensor([[1.0, 0.0, 0.0, 0.0]], device=self.sim.device), pin_local_pos.unsqueeze(0)
             )
-            target_position = pin_world_pos.clone()
+            if self.count == count_step[0]:
+                self.current_target_position = pin_world_pos.clone()
             # target_orientation = planetary_carrier_quat.clone()
         
         # target_marker.visualize(target_position, target_orientation)
+
+        print(f"self.current_target_position: {self.current_target_position}")
+
+        target_position = self.current_target_position.clone()
 
 
         target_position[:, 2] = self.table_height + self.grasping_height

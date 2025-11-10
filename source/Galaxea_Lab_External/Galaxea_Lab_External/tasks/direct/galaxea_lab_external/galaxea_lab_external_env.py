@@ -25,6 +25,7 @@ from isaaclab.managers import SceneEntityCfg
 import isaacsim.core.utils.torch as torch_utils
 
 from Galaxea_Lab_External.robots import GalaxeaRulePolicy
+from isaaclab.sensors import Camera
 
 class GalaxeaLabExternalEnv(DirectRLEnv):
     cfg: GalaxeaLabExternalEnvCfg
@@ -36,6 +37,8 @@ class GalaxeaLabExternalEnv(DirectRLEnv):
         self._right_arm_joint_idx, _ = self.robot.find_joints(self.cfg.right_arm_joint_dof_name)
         self._left_gripper_dof_idx, _ = self.robot.find_joints(self.cfg.left_gripper_dof_name)
         self._right_gripper_dof_idx, _ = self.robot.find_joints(self.cfg.right_gripper_dof_name)
+
+        self._torso_joint_idx, _ = self.robot.find_joints(self.cfg.torso_joint_dof_name)
 
         print(f"_left_arm_joint_idx: {self._left_arm_joint_idx}")
         print(f"_right_arm_joint_idx: {self._right_arm_joint_idx}")
@@ -63,6 +66,9 @@ class GalaxeaLabExternalEnv(DirectRLEnv):
         self.robot = Articulation(self.cfg.robot_cfg)
         # self.table = Articulation(self.cfg.table_cfg)
         # self.cfg.table_cfg.func("/World/envs/env_.*/Table", self.cfg.table_cfg)
+        self.head_camera = Camera(self.cfg.head_camera_cfg)
+        self.left_hand_camera = Camera(self.cfg.left_hand_camera_cfg)
+        self.right_hand_camera = Camera(self.cfg.right_hand_camera_cfg)
 
         self.table = sim_utils.spawn_from_usd("/World/envs/env_.*/Table", self.cfg.table_cfg.spawn,
             translation=self.cfg.table_cfg.init_state.pos, 
@@ -104,6 +110,14 @@ class GalaxeaLabExternalEnv(DirectRLEnv):
                         "sun_planetary_gear_4": self.sun_planetary_gear_4,
                         "planetary_reducer": self.planetary_reducer}
 
+        # self.head_cam = sim_utils.CameraCfg(
+        #     prim_path="/World/envs/env_.*/Robot/left_camera",
+        #     resolution=(1280, 720),
+        #     fov=60.0,
+        #     position=(0.0, 0.0, 0.0),
+        #     orientation=(0.0, 0.0, 0.0),
+        # )
+
 
         self._initialize_scene()
 
@@ -128,15 +142,30 @@ class GalaxeaLabExternalEnv(DirectRLEnv):
             obj.update(sim_dt)
 
     def _get_observations(self) -> dict:
-        obs = torch.cat(
-            (
-                self.left_arm_joint_pos.unsqueeze(dim=1),
-                self.right_arm_joint_pos.unsqueeze(dim=1),
-                self.left_gripper_joint_pos.unsqueeze(dim=1),
-                self.right_gripper_joint_pos.unsqueeze(dim=1),
-            ),
-            dim=-1,
-        )
+        data_type = "rgb"
+        rgb = self.head_camera.data.output[data_type]
+        left_hand_rgb = self.left_hand_camera.data.output[data_type]
+        right_hand_rgb = self.right_hand_camera.data.output[data_type]
+        print(f"rgb: {rgb.shape}")
+        print(f"left_hand_rgb: {left_hand_rgb.shape}")
+        print(f"right_hand_rgb: {right_hand_rgb.shape}")
+
+        # obs = torch.cat(
+        #     (
+        #         rgb,
+        #         left_hand_rgb,
+        #         right_hand_rgb,
+        #         self.left_arm_joint_pos.unsqueeze(dim=1),
+        #         self.right_arm_joint_pos.unsqueeze(dim=1),
+        #         self.left_gripper_joint_pos.unsqueeze(dim=1),
+        #         self.right_gripper_joint_pos.unsqueeze(dim=1),
+        #     ),
+        #     dim=-1,
+        # )
+        obs = dict(rgb=rgb, left_hand_rgb=left_hand_rgb, right_hand_rgb=right_hand_rgb,
+            left_arm_joint_pos=self.left_arm_joint_pos, right_arm_joint_pos=self.right_arm_joint_pos,
+            left_gripper_joint_pos=self.left_gripper_joint_pos, right_gripper_joint_pos=self.right_gripper_joint_pos)
+            
         observations = {"policy": obs}
         return observations
 
@@ -329,6 +358,8 @@ class GalaxeaLabExternalEnv(DirectRLEnv):
             'planetary_reducer': 0.04,     # Medium reducer
         }
 
+        x_offset = 0.2
+
         initial_root_state = {obj_name: torch.zeros((self.scene.num_envs, 7), device=self.device) for obj_name in object_names}
 
         num_envs = self.scene.num_envs
@@ -358,15 +389,15 @@ class GalaxeaLabExternalEnv(DirectRLEnv):
 
                 for attempt in range(max_attempts):
                     # Generate random position
-                    x = torch.rand(1, device=self.device).item() * 0.2 + 0.3  # range [0.3, 0.6]
+                    x = torch.rand(1, device=self.device).item() * 0.2 + 0.3 + x_offset  # range [0.3, 0.6]
                     y = torch.rand(1, device=self.device).item() * 0.6 - 0.3  # range [-0.3, 0.3]
                     z = 0.92
 
                     if obj_name == "ring_gear":
-                        x = 0.24
+                        x = 0.24 + x_offset
                         y = 0.0
                     elif obj_name == "planetary_carrier":
-                        x = 0.42
+                        x = 0.42 + x_offset 
                         y = 0.0
                     elif obj_name == "sun_planetary_gear_1":
                         y = torch.rand(1, device=self.device).item() * 0.3
@@ -448,6 +479,8 @@ class GalaxeaLabExternalEnv(DirectRLEnv):
         # default_root_state[:, :3] += self.scene.env_origins[env_ids]
 
         default_root_state = self.robot.data.default_root_state[env_ids]
+        # print(f"default_root_state: {default_root_state}")
+
         default_root_state[:, :3] += self.scene.env_origins[env_ids]
 
         # print(f"default_root_state: {default_root_state}")
@@ -459,6 +492,8 @@ class GalaxeaLabExternalEnv(DirectRLEnv):
         self.robot.write_root_pose_to_sim(default_root_state[:, :7], env_ids)
         # self.robot.write_joint_state_to_sim(joint_pos, None, self._joint_idx, env_ids)
         self.robot.write_joint_position_to_sim(joint_pos, self._joint_idx, env_ids)
+
+        self.robot.write_joint_position_to_sim(torch.tensor([28.6479 / 180.0 * math.pi, -45.8366 / 180.0 * math.pi, 28.6479 / 180.0 * math.pi], device=self.device), self._torso_joint_idx, env_ids)
 
         # print(f"Initial joint_pos: {joint_pos}")
         
