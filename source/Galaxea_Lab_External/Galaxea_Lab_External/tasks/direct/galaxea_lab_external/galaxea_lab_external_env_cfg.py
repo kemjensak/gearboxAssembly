@@ -50,6 +50,7 @@ class GalaxeaLabExternalEnvCfg(DirectRLEnvCfg):
     action_space = 16
     observation_space = 16
     state_space = 0
+    num_rerenders_on_reset = 5
 
     # simulation
     sim: SimulationCfg = SimulationCfg(dt=sim_dt, render_interval=decimation)
@@ -57,7 +58,8 @@ class GalaxeaLabExternalEnvCfg(DirectRLEnvCfg):
     # robot(s)
     robot_cfg: ArticulationCfg = GALAXEA_R1_CHALLENGE_CFG.replace(prim_path="/World/envs/env_.*/Robot")
 
-    table_cfg: AssetBaseCfg = TABLE_CFG.copy()
+    # table_cfg: AssetBaseCfg = TABLE_CFG.copy()
+    table_cfg: RigidObjectCfg = TABLE_CFG.replace(prim_path="/World/envs/env_.*/Table")
 
     ring_gear_cfg: RigidObjectCfg = RING_GEAR_CFG.replace(prim_path="/World/envs/env_.*/ring_gear",
                                                                        init_state=RigidObjectCfg.InitialStateCfg(

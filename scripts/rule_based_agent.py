@@ -67,8 +67,8 @@ def main():
             print(f"Terminated: {terminated}")
             print(f"Truncated: {truncated}")
             # env.step(actions)
-            if terminated or truncated:
-                env.reset()
+            # if terminated or truncated:
+            #     env.reset()
 
     # close the simulator
     env.close()

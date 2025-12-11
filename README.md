@@ -88,7 +88,7 @@ The **gearbox part models (`.usd` files)** within this repository are managed us
 - **Running the R1 gearbox assembly task with rule-based agent**
     ```bash
     # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-     python scripts/rule_based_agent.py --task=Template-Galaxea-Lab-External-Direct-v0 --enable_cameras
+    python scripts/rule_based_agent.py --task=Template-Galaxea-Lab-External-Direct-v0 --enable_cameras
     ```
 
 ### Set up IDE (Optional)

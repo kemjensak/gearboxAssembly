@@ -389,13 +389,19 @@ class GalaxeaRulePolicy:
             right_dist = torch.norm(gear_pos_env - right_ee_pos[env_idx])
 
             # Choose the nearest arm
-            if left_dist < right_dist:
+            # if left_dist < right_dist:
+            #     chosen_arm = 'left'
+            #     chosen_arm_pos = left_ee_pos[env_idx]
+            # else:
+            #     chosen_arm = 'right'
+            #     chosen_arm_pos = right_ee_pos[env_idx]
+            if gear_pos_env[1] > 0.0:
                 chosen_arm = 'left'
                 chosen_arm_pos = left_ee_pos[env_idx]
             else:
                 chosen_arm = 'right'
                 chosen_arm_pos = right_ee_pos[env_idx]
-
+                
             if gear_name == 'ring_gear' or gear_name == 'planetary_reducer':
                 self.gear_to_pin_map[gear_name] = {
                     'arm': chosen_arm,
@@ -497,7 +503,7 @@ class GalaxeaRulePolicy:
         # target_orientation = obj.data.default_root_state[:, 3:7].clone()
         # print(f"target_position: {target_position}, target_orientation: {target_orientation}")
         # Step 1.1: Move the arm to the target position above the gear and keep the orientation
-        target_position_h = target_position + torch.tensor([0.0, 0.0, 0.1], device=self.sim.device)
+        target_position_h = target_position + torch.tensor([0.0, 0.0, 0.15], device=self.sim.device)
         
         # target_orientation = torch.tensor([[0.0, -1.0, 0.0, 0.0]], device=sim.device)
         target_orientation = root_state[:, 3:7].clone()
@@ -984,7 +990,8 @@ class GalaxeaRulePolicy:
                 print(f'Reset action: {reset_action}')
                 print(f'reset_joint_ids: {reset_joint_ids}')
 
-                action = torch.cat([pick_action, reset_action], dim=1).unsqueeze(0)
+                # action = torch.cat([pick_action, reset_action], dim=1).unsqueeze(0)
+                action = torch.cat([pick_action, reset_action], dim=1)
                 joint_ids = pick_joint_ids + reset_joint_ids
 
                 print(f'Action: {action}')
