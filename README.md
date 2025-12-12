@@ -4,6 +4,7 @@ Code Repository for the [RoCo Challenge@AAAI 2026](https://rocochallenge.github.
 
 The Gearbox Assembly Assistance Challenge evaluates bimanual robotic systems in collaborative gearbox assembly within manufacturing environments. It targets scenarios where robots work seamlessly with human operators.
 
+**⭐ NEWS (12.12.2025):** Due to LFS bandwidth limits, the LFS files may fail to download. As an alternative, download the LFS files by clicking https://drive.google.com/file/d/1EmJyEl4Wqnr2zm0h4GMsLB5S197hABi1/view?usp=sharing, extract it, and place its contents into `gearboxAssembly/source/Galaxea_Lab_External/assets`.
 ## Overview
 
 In this project, we setup a Isaac Lab environment for the Galaxea R1 gearbox assembly task. 
