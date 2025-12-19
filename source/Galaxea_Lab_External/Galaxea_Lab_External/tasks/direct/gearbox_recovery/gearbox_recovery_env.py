@@ -712,7 +712,7 @@ class GalaxeaLabExternalEnv(DirectRLEnv):
 
         root_state = self.table.data.default_root_state.clone()
         self.table.write_root_state_to_sim(root_state)
-        self.save_hdf5_file_name = '../data/data_recovery' + datetime.now().strftime("%Y%m%d_%H%M%S") + '.hdf5'
+        self.save_hdf5_file_name = '../data/data_recovery_' + datetime.now().strftime("%Y%m%d_%H%M%S") + '.hdf5'
 
         # Initialize objects based on assembly state
         if self.cfg.initial_assembly_state == "lack_fourth_gear":
